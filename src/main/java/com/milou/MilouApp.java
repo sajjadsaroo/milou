@@ -1,42 +1,73 @@
 package com.milou;
-
-import com.milou.models.Email;
-import com.milou.services.AuthService;
-import com.milou.services.EmailService;
 import com.milou.models.User;
-import com.milou.utils.CodeGenerator;
-
-import java.time.LocalDateTime;
-import java.util.List;
+import com.milou.services.AuthService;
+import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 public class MilouApp {
+
+    private static final Scanner scanner = new Scanner(System.in);
+
     public static void main(String[] args) {
 
+        LogManager.getLogManager().reset();
+        Logger.getLogger("org.hibernate").setLevel(Level.WARNING);
+        Logger.getLogger("com.mysql").setLevel(Level.WARNING);
+        Logger.getLogger("org.hibernate.SQL").setLevel(Level.WARNING);
+        Logger.getLogger("org.hibernate.type.descriptor.sql.BasicBinder").setLevel(Level.WARNING);
+
+        while (true) {
+            System.out.println("[L]ogin, [S]ign up:");
+            String input = scanner.nextLine().trim().toLowerCase();
+
+            if (input.equals("l") || input.equals("login")) {
+                login();
+            } else if (input.equals("s") || input.equals("sign up") || input.equals("signup")) {
+                signUp();
+            } else {
+                System.out.println("Invalid input. Please enter 'L' for Login or 'S' for Sign up.");
+            }
+        }
+    }
+
+
+    private static void login() {
+        System.out.println("Please enter your email address (with or without \"@milou.com\"): ");
+        String email = scanner.nextLine();
+        System.out.println("Please enter your password: ");
+        String password = scanner.nextLine();
         AuthService auth = new AuthService();
         try {
-
-            User user  = auth.login("testuser@milou.com", "securepassword123");
-            if(user != null) {
-                Email email = new Email();
-                email.setMessage_code(CodeGenerator.generate());
-                email.setSender(user);
-                email.setSubject("تست اتصال به دیتابیس");
-                email.setBody("این یک ایمیل تستی است.");
-                email.setTimestamp(LocalDateTime.now());
-                email.addRecipients("rec@milou.com");
-
-                try {
-                    EmailService emailService = new EmailService();
-                    emailService.sendEmail(email);
-                    System.out.println("ایمیل با موفقیت ذخیره شد: " + email);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            if(auth.login(email,password) == null){
+                System.out.println("Invalid email or password. Please try again.");
+                main(null);
             }
-
+            showUserCommands();
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
+    }
 
+    private static void signUp() {
+        System.out.print("Name: ");
+        String name = scanner.nextLine().trim();
+
+        System.out.print("Email: ");
+        String email = scanner.nextLine().trim();
+
+        System.out.print("Password: ");
+        String password = scanner.nextLine().trim();
+
+        // TODO: Validate input, check duplicate, password length
+
+        System.out.println("Your new account is created.");
+        System.out.println("Go ahead and login!");
+    }
+
+    private static void showUserCommands() {
+        System.out.println("[S]end, [V]iew, [R]eply, [F]orward:");
+        // TODO: Handle user commands here
     }
 }
