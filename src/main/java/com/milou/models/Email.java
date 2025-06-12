@@ -13,7 +13,7 @@ public class Email {
     private Long id;
 
     @Column(unique = true, nullable = false)
-    private String messageCode;
+    private String message_code;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", nullable = false)
@@ -42,12 +42,12 @@ public class Email {
         this.id = id;
     }
 
-    public String getMessageCode() {
-        return messageCode;
+    public String getMessage_code() {
+        return message_code;
     }
 
-    public void setMessageCode(String messageCode) {
-        this.messageCode = messageCode;
+    public void setMessage_code(String messageCode) {
+        this.message_code = messageCode;
     }
 
     public User getSender() {
@@ -90,5 +90,8 @@ public class Email {
         this.timestamp = timestamp;
     }
 
-    // Constructors, Getters, Setters...
+    @Override
+    public String toString() {
+        return "Email id" + getId() + "Subject: " + getSubject() + "Body: " + getBody() + "Timestamp: " + getTimestamp();
+    }
 }
