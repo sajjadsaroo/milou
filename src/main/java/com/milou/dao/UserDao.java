@@ -16,9 +16,9 @@ public class UserDao {
             session.persist(user);
             transaction.commit();
         } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
+//            if (transaction != null) {
+//                transaction.rollback();
+//            }
             e.printStackTrace();
         }
     }
