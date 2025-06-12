@@ -7,9 +7,13 @@ public class AuthService {
 
     public void signUp(String name, String email, String password) throws Exception {
         String normalizedEmail = normalizeEmail(email); // متد کمکی برای افزودن @milou.com
-        if (userDao.findByEmail(normalizedEmail) != null) {
-            throw new Exception("خطا: این ایمیل قبلاً ثبت شده است!");
+        if(password.length() < 8) {
+            throw new Exception("password too short (must be at least 8 characters)");
         }
+        if (userDao.findByEmail(normalizedEmail) != null) {
+            throw new Exception("this email already exists");
+        }
+
         User newUser = new User(name, normalizedEmail, password);
         userDao.save(newUser);
     }
@@ -27,7 +31,7 @@ public class AuthService {
         return user;
     }
 
-    private String normalizeEmail(String email) {
+    public String normalizeEmail(String email) {
         if (!email.contains("@")) {
             return email+"@milou.com";
         }

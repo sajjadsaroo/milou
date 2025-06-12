@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 public class MilouApp {
 
     private static final Scanner scanner = new Scanner(System.in);
+    private static final AuthService auth = new AuthService();
 
     public static void main(String[] args) {
 
@@ -38,7 +39,7 @@ public class MilouApp {
         String email = scanner.nextLine();
         System.out.println("Please enter your password: ");
         String password = scanner.nextLine();
-        AuthService auth = new AuthService();
+
         try {
             if(auth.login(email,password) == null){
                 System.out.println("Invalid email or password. Please try again.");
@@ -54,14 +55,18 @@ public class MilouApp {
         System.out.print("Name: ");
         String name = scanner.nextLine().trim();
 
-        System.out.print("Email: ");
+        System.out.print("Email: (with or without \"@milou.com\"): ");
         String email = scanner.nextLine().trim();
 
         System.out.print("Password: ");
         String password = scanner.nextLine().trim();
 
-        // TODO: Validate input, check duplicate, password length
-
+        try {
+            auth.signUp(name,email,password);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            main(null);
+        }
         System.out.println("Your new account is created.");
         System.out.println("Go ahead and login!");
     }
