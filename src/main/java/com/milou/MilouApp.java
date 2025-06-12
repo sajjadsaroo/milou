@@ -4,8 +4,10 @@ import com.milou.models.Email;
 import com.milou.services.AuthService;
 import com.milou.services.EmailService;
 import com.milou.models.User;
+import com.milou.utils.CodeGenerator;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class MilouApp {
     public static void main(String[] args) {
@@ -16,11 +18,12 @@ public class MilouApp {
             User user  = auth.login("testuser@milou.com", "securepassword123");
             if(user != null) {
                 Email email = new Email();
-                email.setMessage_code("msg12345");
+                email.setMessage_code(CodeGenerator.generate());
                 email.setSender(user);
                 email.setSubject("تست اتصال به دیتابیس");
                 email.setBody("این یک ایمیل تستی است.");
                 email.setTimestamp(LocalDateTime.now());
+                email.addRecipients("rec@milou.com");
 
                 try {
                     EmailService emailService = new EmailService();

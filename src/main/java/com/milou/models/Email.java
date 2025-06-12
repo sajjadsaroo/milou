@@ -1,5 +1,6 @@
 package com.milou.models;
 
+import com.milou.dao.UserDao;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -60,6 +61,17 @@ public class Email {
 
     public List<User> getRecipients() {
         return recipients;
+    }
+
+    public void addRecipients(String recipient) throws Exception {
+        UserDao userDao = new UserDao();
+        User rec = userDao.findByEmail(recipient);
+
+        if(rec == null) {
+            throw new Exception("این ایمیل در سامانه ما یافت نشد !");
+        }
+
+        recipients.add(rec);
     }
 
     public void setRecipients(List<User> recipients) {
