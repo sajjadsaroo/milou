@@ -1,7 +1,9 @@
 package com.milou.models;
 
 import com.milou.dao.UserDao;
+import com.milou.services.AuthService;
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
@@ -30,10 +32,20 @@ public class Email {
 
     private String subject;
 
+
     @Lob
     private String body;
 
     private LocalDateTime timestamp;
+
+    public Email(User sender, String subject, String body) {
+        this.sender = sender;
+        this.subject = subject;
+        this.body = body;
+    }
+
+    public Email() {
+    }
 
     public Long getId() {
         return id;
@@ -63,12 +75,18 @@ public class Email {
         return recipients;
     }
 
-    public void addRecipients(String recipient) throws Exception {
+    public void addRecipients(String recipient) {
+
+        AuthService authService = new AuthService();
+        recipient = authService.normalizeEmail(recipient);
+
+
         UserDao userDao = new UserDao();
         User rec = userDao.findByEmail(recipient);
 
-        if(rec == null) {
-            throw new Exception("این ایمیل در سامانه ما یافت نشد !");
+        if (rec == null) {
+            System.out.println(recipient + " does not exist!");
+            return;
         }
 
         recipients.add(rec);

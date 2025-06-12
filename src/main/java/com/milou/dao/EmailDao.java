@@ -26,9 +26,9 @@ public class EmailDao {
             session.persist(email);
             transaction.commit();
         } catch (Exception e) {
-            if (transaction != null && transaction.isActive()) {
-                transaction.rollback();
-            }
+//            if (transaction != null && transaction.isActive()) {
+//                transaction.rollback();
+//            }
             e.printStackTrace();
         }
     }

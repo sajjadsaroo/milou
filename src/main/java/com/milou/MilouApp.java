@@ -1,10 +1,18 @@
 package com.milou;
+
+import com.milou.models.Email;
 import com.milou.models.User;
 import com.milou.services.AuthService;
+import com.milou.services.EmailService;
+import com.milou.utils.CodeGenerator;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+import java.time.LocalDateTime;
 
 public class MilouApp {
 
@@ -41,11 +49,12 @@ public class MilouApp {
         String password = scanner.nextLine();
 
         try {
-            if(auth.login(email,password) == null){
+            User user = auth.login(email, password);
+            if (user == null) {
                 System.out.println("Invalid email or password. Please try again.");
                 main(null);
             }
-            showUserCommands();
+            showUserCommands(user);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -62,7 +71,7 @@ public class MilouApp {
         String password = scanner.nextLine().trim();
 
         try {
-            auth.signUp(name,email,password);
+            auth.signUp(name, email, password);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             main(null);
@@ -71,8 +80,51 @@ public class MilouApp {
         System.out.println("Go ahead and login!");
     }
 
-    private static void showUserCommands() {
+    private static void showUserCommands(User user) {
         System.out.println("[S]end, [V]iew, [R]eply, [F]orward:");
-        // TODO: Handle user commands here
+        String command = scanner.nextLine().trim().toLowerCase();
+
+        switch (command) {
+            case "s":
+                sendEmail(user);
+                break;
+        }
+
+    }
+
+    private static void sendEmail(User sender) {
+        System.out.println("Recipient(s) Separate with commas (,):");
+        String recipients = scanner.nextLine().trim();
+        String[] emails = recipients.split(",");
+        if (emails.length == 0) {
+            System.out.println("Please enter valid email addresses.");
+            sendEmail(sender);
+        }
+
+        System.out.println("Subject: ");
+        String subject = scanner.nextLine().trim();
+        if (subject.isEmpty())
+            subject = "no subject";
+
+        System.out.println("Body: ");
+        String body = scanner.nextLine().trim();
+
+        Email email = new Email(sender, subject, body);
+        email.setMessage_code(CodeGenerator.generate());
+
+        for (String email_address : emails) {
+            email.addRecipients(email_address.trim());
+        }
+
+        email.setTimestamp(LocalDateTime.now());
+
+        EmailService emailService = new EmailService();
+        try {
+            emailService.sendEmail(email);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+
     }
 }

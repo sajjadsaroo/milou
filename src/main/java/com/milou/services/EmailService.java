@@ -9,9 +9,17 @@ public class EmailService {
 
     public void sendEmail(Email email) throws Exception {
         if (emailDao.findByCode(email.getMessage_code()) != null) {
-            throw new Exception("خطا: این ایمیل قبلا ارسال شده است!");
+            throw new Exception("this email already sent");
         }
-        emailDao.save(email);
+
+        try {
+            emailDao.save(email);
+            System.out.println("Successfully sent your email.");
+            System.out.println("Code: " + email.getMessage_code() + "\n");
+        } catch (Exception e) {
+
+        }
+
     }
 
 }

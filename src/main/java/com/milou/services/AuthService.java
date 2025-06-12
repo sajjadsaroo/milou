@@ -21,7 +21,6 @@ public class AuthService {
     public User login(String email, String password){
         String normalizedEmail = normalizeEmail(email);
         if(userDao.findByEmail(normalizedEmail) == null){
-//            throw new Exception("your email is not exist!");
             return null;
         }
         User user = userDao.findByEmail(normalizedEmail);
