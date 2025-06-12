@@ -1,21 +1,36 @@
 package com.milou.services;
-
-import com.milou.dao.UserDao;
-import com.milou.models.User;
-import java.util.Optional;
+import com.milou.dao.*;
+import com.milou.models.*;
 
 public class AuthService {
     private final UserDao userDao = new UserDao();
-    // ... ( متدهای normalizeEmail و signUp و login اینجا میان )
 
-    // مثلاً متد signUp این شکلی می‌شه:
     public void signUp(String name, String email, String password) throws Exception {
-        // ... (validation)
-        String normalizedEmail = normalizeEmail(email);
-        if (userDao.findByEmail(normalizedEmail).isPresent()) {
-            throw new Exception("This email is already taken.");
+        String normalizedEmail = normalizeEmail(email); // متد کمکی برای افزودن @milou.com
+        if (userDao.findByEmail(normalizedEmail) != null) {
+            throw new Exception("خطا: این ایمیل قبلاً ثبت شده است!");
         }
         User newUser = new User(name, normalizedEmail, password);
         userDao.save(newUser);
     }
+
+    public User login(String email, String password) throws Exception {
+        String normalizedEmail = normalizeEmail(email);
+        if(userDao.findByEmail(normalizedEmail) == null){
+            return null;
+        }
+        User user = userDao.findByEmail(normalizedEmail);
+        if(!user.getPassword().equals(password)){
+            return null;
+        }
+        return user;
+    }
+
+    private String normalizeEmail(String email) {
+        if (!email.contains("@")) {
+            return email+"@milou.com";
+        }
+        return email;
+    }
+
 }

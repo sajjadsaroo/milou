@@ -34,5 +34,61 @@ public class Email {
 
     private LocalDateTime timestamp;
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getMessageCode() {
+        return messageCode;
+    }
+
+    public void setMessageCode(String messageCode) {
+        this.messageCode = messageCode;
+    }
+
+    public User getSender() {
+        return sender;
+    }
+
+    public void setSender(User sender) {
+        this.sender = sender;
+    }
+
+    public List<User> getRecipients() {
+        return recipients;
+    }
+
+    public void setRecipients(List<User> recipients) {
+        this.recipients = recipients;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+
     // Constructors, Getters, Setters...
 }
