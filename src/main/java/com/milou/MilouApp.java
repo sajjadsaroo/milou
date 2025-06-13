@@ -1,16 +1,12 @@
 package com.milou;
 
-import com.milou.dao.EmailDao;
 import com.milou.models.Email;
 import com.milou.models.User;
 import com.milou.services.AuthService;
 import com.milou.services.EmailService;
 import com.milou.utils.CodeGenerator;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Scanner;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -108,7 +104,38 @@ public class MilouApp {
             case "u":
                 unreadEmail(user);
                 break;
+            case "s":
+                sentEmail(user);
+                break;
+            case "c":
+                readByCode(user);
+                break;
         }
+    }
+
+    private static void readByCode(User user) {
+        System.out.println("Code: ");
+        String code = scanner.nextLine().trim();
+        Optional<Email> email = EmailService.readByCode(user.getId(), code);
+        if (email.isEmpty()) {
+            System.out.println("Email not found. Please try again.");
+            viewEmail(user);
+        }
+        System.out.println(email.get());
+    }
+
+    private static void sentEmail(User user) {
+        List<Email> emails = EmailService.sentMails(user.getId());
+
+        if (emails.size() <= 0) {
+            System.out.println("No sent emails found.");
+            viewEmail(user);
+        }
+        System.out.println("Sent Emails:");
+        for (Email email : emails) {
+            System.out.println("+ " + email.getSender().getEmail() + " - " + email.getSubject() + " (" + email.getMessage_code() + ")");
+        }
+        viewEmail(user);
     }
 
     private static void allMail(User user) {
@@ -132,7 +159,7 @@ public class MilouApp {
             System.out.println("No Unread emails found.");
             viewEmail(user);
         }
-        System.out.println("All Emails:");
+        System.out.println("Unread Emails:");
         for (Email email : emails) {
             System.out.println("+ " + email.getSender().getEmail() + " - " + email.getSubject() + " (" + email.getMessage_code() + ")");
         }
