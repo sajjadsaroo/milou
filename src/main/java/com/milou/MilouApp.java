@@ -1,10 +1,12 @@
 package com.milou;
 
+import com.milou.dao.EmailDao;
 import com.milou.models.Email;
 import com.milou.models.User;
 import com.milou.services.AuthService;
 import com.milou.services.EmailService;
 import com.milou.utils.CodeGenerator;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -88,8 +90,53 @@ public class MilouApp {
             case "s":
                 sendEmail(user);
                 break;
+            case "v":
+                viewEmail(user);
+                break;
         }
 
+    }
+
+    private static void viewEmail(User user) {
+        System.out.println("[A]ll emails, [U]nread emails, [S]ent emails, Read by [C]ode: ");
+        String order = scanner.nextLine().trim().toLowerCase();
+
+        switch (order) {
+            case "a":
+                allMail(user);
+                break;
+            case "u":
+                unreadEmail(user);
+                break;
+        }
+    }
+
+    private static void allMail(User user) {
+
+        List<Email> emails = EmailService.allMails(user.getId());
+
+        if (emails.size() <= 0) {
+            System.out.println("No received emails found.");
+            viewEmail(user);
+        }
+        System.out.println("All Emails:");
+        for (Email email : emails) {
+            System.out.println("+ " + email.getSender().getEmail() + " - " + email.getSubject() + " (" + email.getMessage_code() + ")");
+        }
+        viewEmail(user);
+    }
+
+    private static void unreadEmail(User user) {
+        List<Email> emails = EmailService.unreadMails(user.getId());
+        if (emails.size() <= 0) {
+            System.out.println("No Unread emails found.");
+            viewEmail(user);
+        }
+        System.out.println("All Emails:");
+        for (Email email : emails) {
+            System.out.println("+ " + email.getSender().getEmail() + " - " + email.getSubject() + " (" + email.getMessage_code() + ")");
+        }
+        viewEmail(user);
     }
 
     private static void sendEmail(User sender) {

@@ -6,6 +6,7 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class EmailDao {
@@ -68,6 +69,40 @@ public class EmailDao {
         } catch (Exception e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    public List<Email> findReceivedEmailsByUserId(Long userId) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+
+            String hql = "SELECT e FROM Email e JOIN e.recipients r WHERE r.id = :userId ORDER BY e.timestamp DESC";
+
+            return session.createQuery(hql, Email.class)
+                    .setParameter("userId", userId)
+                    .getResultList();
+        } catch (Exception e) {
+            System.err.println("Error finding received emails for user ID " + userId);
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+    }
+
+    public List<Email> findUnreadEmailsByUserIdNative(Long userId) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+
+            String sql = "SELECT e.* FROM emails e " +
+                    "JOIN email_recipient er ON e.id = er.email_id " +
+                    "WHERE er.user_id = :userId AND er.is_read = 0 " +
+                    "ORDER BY e.timestamp DESC";
+
+            return session.createNativeQuery(sql, Email.class)
+                    .setParameter("userId", userId)
+                    .getResultList();
+
+        } catch (Exception e) {
+            System.err.println("Error finding unread emails with native query for user ID " + userId);
+            e.printStackTrace();
+            return Collections.emptyList();
         }
     }
 

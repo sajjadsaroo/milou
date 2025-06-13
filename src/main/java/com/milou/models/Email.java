@@ -18,7 +18,7 @@ public class Email {
     @Column(unique = true, nullable = false)
     private String message_code;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "sender_id", nullable = false)
     private User sender;
 

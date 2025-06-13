@@ -1,6 +1,9 @@
 package com.milou.services;
+
 import com.milou.dao.*;
 import com.milou.models.*;
+
+import java.util.List;
 
 public class EmailService {
 
@@ -22,4 +25,13 @@ public class EmailService {
 
     }
 
+    public static List<Email> allMails(Long userId) {
+        EmailDao emailDao = new EmailDao();
+        return emailDao.findReceivedEmailsByUserId(userId);
+    }
+
+    public static List<Email> unreadMails(Long userId) {
+        EmailDao emailDao = new EmailDao();
+        return emailDao.findUnreadEmailsByUserIdNative(userId);
+    }
 }
