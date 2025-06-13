@@ -122,6 +122,11 @@ public class Email {
 
     @Override
     public String toString() {
-        return "Email id" + getId() + "Subject: " + getSubject() + "Body: " + getBody() + "Timestamp: " + getTimestamp();
+        String s = "Code: " + getMessage_code() + "\nRecipient(s): ";
+        for (User user : getRecipients()) {
+            s = s.concat(user.getEmail() + " ");
+        }
+        s = s.concat("\nSubject: " + getSubject() + "\nDate: " + getTimestamp() + "\n\n" + getBody() + "\n");
+        return s;
     }
 }

@@ -1,4 +1,5 @@
 package com.milou.dao;
+
 import com.milou.models.Email;
 import com.milou.models.User;
 import com.milou.utils.HibernateUtil;
@@ -8,6 +9,7 @@ import org.hibernate.Transaction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class EmailDao {
     public void save(Email email) {
@@ -46,6 +48,7 @@ public class EmailDao {
         }
     }
 
+
     public int count() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             Long count = session.createQuery("SELECT COUNT(e) FROM Email e", Long.class)
@@ -59,9 +62,9 @@ public class EmailDao {
 
     public Long findMaxId() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Long res =  session.createQuery("SELECT max(e.id) FROM Email e", Long.class)
+            Long res = session.createQuery("SELECT max(e.id) FROM Email e", Long.class)
                     .uniqueResult();
-            if(res != null)
+            if (res != null)
                 return res;
 
             return 0L;
@@ -87,6 +90,42 @@ public class EmailDao {
         }
     }
 
+    public Optional<Email> findEmailByCodeForUser(Long userId , String code) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+
+            String hql = "SELECT DISTINCT e FROM Email e " +
+                    "LEFT JOIN FETCH e.sender s " +
+                    "LEFT JOIN FETCH e.recipients r " +
+                    "WHERE e.message_code = :mCode AND (s.id = :userId OR r.id = :userId)";
+
+            return session.createQuery(hql, Email.class)
+                    .setParameter("mCode", code)
+                    .setParameter("userId", userId)
+                    .getResultStream()
+                    .findFirst();
+
+        } catch (Exception e) {
+            System.err.println("Error finding email with code " + code + " for user ID " + userId);
+            e.printStackTrace();
+            return Optional.empty();
+        }
+    }
+
+    public List<Email> findSentEmails(Long userId) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+
+            String hql = "SELECT e FROM Email e WHERE e.sender.id = :userId ORDER BY e.timestamp DESC";
+
+            return session.createQuery(hql, Email.class)
+                    .setParameter("userId", userId)
+                    .getResultList();
+        } catch (Exception e) {
+            System.err.println("Error finding sent emails for user ID " + userId);
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+    }
+
     public List<Email> findUnreadEmailsByUserIdNative(Long userId) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
 
@@ -100,7 +139,7 @@ public class EmailDao {
                     .getResultList();
 
         } catch (Exception e) {
-            System.err.println("Error finding unread emails with native query for user ID " + userId);
+            System.err.println("Error finding unread emails for user ID " + userId);
             e.printStackTrace();
             return Collections.emptyList();
         }

@@ -4,6 +4,7 @@ import com.milou.dao.*;
 import com.milou.models.*;
 
 import java.util.List;
+import java.util.Optional;
 
 public class EmailService {
 
@@ -30,8 +31,18 @@ public class EmailService {
         return emailDao.findReceivedEmailsByUserId(userId);
     }
 
+    public static Optional<Email> readByCode(Long userId , String code) {
+        EmailDao emailDao = new EmailDao();
+        return emailDao.findEmailByCodeForUser(userId , code);
+    }
+
     public static List<Email> unreadMails(Long userId) {
         EmailDao emailDao = new EmailDao();
         return emailDao.findUnreadEmailsByUserIdNative(userId);
+    }
+
+    public static List<Email> sentMails(Long userId) {
+        EmailDao emailDao = new EmailDao();
+        return emailDao.findSentEmails(userId);
     }
 }
