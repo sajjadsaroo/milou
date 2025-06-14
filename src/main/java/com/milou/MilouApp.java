@@ -59,14 +59,31 @@ public class MilouApp {
     }
 
     private static void signUp() {
-        System.out.print("Name: ");
+        System.out.print("Name: (or 'B' to go back to the view login menu): ");
         String name = scanner.nextLine().trim();
 
-        System.out.print("Email: (with or without \"@milou.com\"): ");
+        if (name.equalsIgnoreCase("b")) {
+            main(null);
+            return;
+        }
+
+
+        System.out.print("Email: (with or without \"@milou.com\") (or 'B' to go back to the view login menu): ");
         String email = scanner.nextLine().trim();
 
-        System.out.print("Password: ");
+        if (email.equalsIgnoreCase("b")) {
+            main(null);
+            return;
+        }
+
+        System.out.print("Password: (or 'B' to go back to the view login menu): ");
         String password = scanner.nextLine().trim();
+
+        if (password.equalsIgnoreCase("b")) {
+            main(null);
+            return;
+        }
+
 
         try {
             auth.signUp(name, email, password);
@@ -79,7 +96,7 @@ public class MilouApp {
     }
 
     private static void showUserCommands(User user) {
-        System.out.println("[S]end, [V]iew, [R]eply, [F]orward:");
+        System.out.println("[S]end, [V]iew, [R]eply, [F]orward, [Q]uit");
         String command = scanner.nextLine().trim().toLowerCase();
 
         switch (command) {
@@ -92,13 +109,21 @@ public class MilouApp {
             case "r":
                 replyEmail(user);
                 break;
+            case "q":
+                main(null);
+                break;
         }
 
     }
 
     private static void replyEmail(User sender) {
-        System.out.println("Code:");
+        System.out.println("Code (or 'B' to go back to the main menu):");
         String code = scanner.nextLine().trim();
+        if (code.equalsIgnoreCase("b")) {
+            showUserCommands(sender);
+            return;
+        }
+
         Optional<Email> oldEmail = EmailService.readByCode(sender.getId(), code);
         if (oldEmail.isEmpty()) {
             System.out.println("Invalid email code. Please try again.");
@@ -106,13 +131,17 @@ public class MilouApp {
             return;
         }
 
-        System.out.println("Body:");
+        System.out.println("Body (or 'B' to go back to main menu):");
         String body = scanner.nextLine();
+        if (body.equalsIgnoreCase("b")) {
+            showUserCommands(sender);
+            return;
+        }
 
         Email email = new Email(sender, "[Re] " + oldEmail.get().getSubject(), body);
         email.setTimestamp(LocalDateTime.now());
 
-        List<User> oldRecipients = oldEmail.get().getRecipients();
+        List<User> oldRecipients = new ArrayList<>(oldEmail.get().getRecipients());
         oldRecipients.removeIf(u -> u.getId().equals(sender.getId()));
         if (oldRecipients.stream()
                 .noneMatch(u -> u.getId().equals(oldEmail.get().getSender().getId()))) {
@@ -129,11 +158,13 @@ public class MilouApp {
             System.out.println(e.getMessage());
             replyEmail(sender);
         }
+
         showUserCommands(sender);
     }
 
+
     private static void viewEmail(User user) {
-        System.out.println("[A]ll emails, [U]nread emails, [S]ent emails, Read by [C]ode: ");
+        System.out.println("[A]ll, [U]nread, [S]ent, [C]ode (or 'B' to go back to the main menu):");
         String order = scanner.nextLine().trim().toLowerCase();
 
         switch (order) {
@@ -149,16 +180,28 @@ public class MilouApp {
             case "c":
                 readByCode(user);
                 break;
+            case "b":
+                showUserCommands(user);
+                break;
+            default:
+                System.out.println("Invalid input.");
+                viewEmail(user);
         }
     }
 
+
     private static void readByCode(User user) {
-        System.out.println("Code: ");
+        System.out.println("Code (or 'B' to go back to the view mail menu): ");
         String code = scanner.nextLine().trim();
+        if (code.equalsIgnoreCase("b")) {
+            viewEmail(user);
+            return;
+        }
+
         Optional<Email> email = EmailService.readByCode(user.getId(), code);
         if (email.isEmpty()) {
             System.out.println("Email not found. Please try again.");
-            viewEmail(user);
+            readByCode(user);
             return;
         }
 
@@ -166,10 +209,11 @@ public class MilouApp {
         viewEmail(user);
     }
 
+
     private static void sentEmail(User user) {
         List<Email> emails = EmailService.sentMails(user.getId());
 
-        if (emails.size() <= 0) {
+        if (emails.isEmpty()) {
             System.out.println("No sent emails found.");
             viewEmail(user);
         }
@@ -184,7 +228,7 @@ public class MilouApp {
 
         List<Email> emails = EmailService.allMails(user.getId());
 
-        if (emails.size() <= 0) {
+        if (emails.isEmpty()) {
             System.out.println("No received emails found.");
             viewEmail(user);
         }
@@ -197,7 +241,7 @@ public class MilouApp {
 
     private static void unreadEmail(User user) {
         List<Email> emails = EmailService.unreadMails(user.getId());
-        if (emails.size() <= 0) {
+        if (emails.isEmpty()) {
             System.out.println("No Unread emails found.");
             viewEmail(user);
         }
@@ -209,8 +253,14 @@ public class MilouApp {
     }
 
     private static void sendEmail(User sender) {
-        System.out.println("Recipient(s) Separate with commas (,):");
+        System.out.println("Recipient(s) Separate with commas (,) (or 'B' to go back to the view mail menu): ");
         String recipients = scanner.nextLine().trim();
+
+        if (recipients.equalsIgnoreCase("b")) {
+            showUserCommands(sender);
+            return;
+        }
+
         String[] emails = recipients.split(",");
         if (emails.length == 0) {
             System.out.println("Please enter valid email addresses.");
