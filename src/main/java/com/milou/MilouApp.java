@@ -4,6 +4,7 @@ import com.milou.models.Email;
 import com.milou.models.User;
 import com.milou.services.AuthService;
 import com.milou.services.EmailService;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -82,7 +83,7 @@ public class MilouApp {
                 case "s" -> sendEmail(user);
                 case "v" -> viewEmailMenu(user);
                 case "r" -> replyEmail(user);
-                // case "f" -> forwardEmail(user); // برای پیاده‌سازی در آینده
+                case "f" -> forwardEmail(user);
                 case "l" -> {
                     System.out.println("Logging out...");
                     return;
@@ -90,6 +91,26 @@ public class MilouApp {
                 default -> System.out.println("Invalid command.");
             }
         }
+    }
+
+    private static void forwardEmail(User user) {
+
+        System.out.println("Code:");
+        String code = scanner.nextLine().trim();
+        if (code.isEmpty()) return;
+
+        System.out.println("Recipient(s):");
+        String recipients = scanner.nextLine().trim();
+        if (recipients.isEmpty()) return;
+
+        String[] recipients_a = recipients.split(",");
+
+        try{
+            emailService.forwardEmail(user, code , recipients_a);
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
     }
 
     private static void viewEmailMenu(User user) {
@@ -150,7 +171,7 @@ public class MilouApp {
 
         List<String> recipientEmails = Arrays.asList(recipientsInput.split("\\s*,\\s*"));
         try {
-            emailService.sendEmail(sender, recipientEmails, subject, body);
+            emailService.sendEmail(sender, recipientEmails, subject, body , "Successfully sent your email.");
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }

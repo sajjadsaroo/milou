@@ -14,7 +14,6 @@ public class EmailService {
     private final UserDao userDao = new UserDao();
 
 
-
     public void replyToEmail(User replier, String originalEmailCode, String replyBody) throws Exception {
         Optional<Email> originalEmailOpt = emailDao.findEmailByCodeForUser(replier.getId(), originalEmailCode);
         if (originalEmailOpt.isEmpty()) {
@@ -39,10 +38,36 @@ public class EmailService {
 
         List<String> finalRecipients = new ArrayList<>(newRecipientEmailSet);
 
-        sendEmail(replier, finalRecipients, newSubject, replyBody);
+        sendEmail(replier, finalRecipients, newSubject, replyBody, "Successfully sent your reply to email " + originalEmailCode + ".");
     }
 
-    public Email sendEmail(User sender, List<String> recipientEmails, String subject, String body) throws Exception {
+    public void forwardEmail(User forwarder, String originalEmailCode, String[] recipients) throws Exception {
+
+        Optional<Email> originalEmailOpt = emailDao.findEmailByCodeForUser(forwarder.getId(), originalEmailCode);
+
+        if (originalEmailOpt.isEmpty()) {
+            throw new Exception("Original email with code " + originalEmailCode + " not found or you don't have access.");
+        }
+
+        Email originalEmail = originalEmailOpt.get();
+
+        String newSubject = originalEmail.getSubject().startsWith("[Re]") ?
+                originalEmail.getSubject() :
+                "[Fw] " + originalEmail.getSubject();
+
+
+        Set<String> newRecipientEmailSet = new HashSet<>();
+
+        for (String recipient : recipients) {
+            newRecipientEmailSet.add(recipient.trim());
+        }
+
+        List<String> finalRecipients = new ArrayList<>(newRecipientEmailSet);
+
+        sendEmail(forwarder, finalRecipients, newSubject, originalEmail.getBody(), "Successfully forwarded your email.");
+    }
+
+    public void sendEmail(User sender, List<String> recipientEmails, String subject, String body, String message) throws Exception {
 
         List<User> recipientUsers = new ArrayList<>();
         for (String emailStr : recipientEmails) {
@@ -71,10 +96,9 @@ public class EmailService {
 
         emailDao.save(email);
 
-        System.out.println("Successfully sent your email.");
+        System.out.println(message);
         System.out.println("Code: " + email.getMessage_code() + "\n");
 
-        return email;
     }
 
 
