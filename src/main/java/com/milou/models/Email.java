@@ -79,22 +79,6 @@ public class Email {
         return recipients;
     }
 
-    public void addRecipients(String recipient) {
-
-        AuthService authService = new AuthService();
-        recipient = authService.normalizeEmail(recipient);
-
-
-        UserDao userDao = new UserDao();
-        User rec = userDao.findByEmail(recipient);
-
-        if (rec == null) {
-            System.out.println(recipient + " does not exist!");
-            return;
-        }
-
-        recipients.add(rec);
-    }
 
     public void setRecipients(List<User> recipients) {
         this.recipients = recipients;
@@ -141,13 +125,12 @@ public class Email {
 
         sb.append("Subject: ").append(this.getSubject()).append("\n");
 
-        // فرمت کردن تاریخ
         if (this.timestamp != null) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             sb.append("Date: ").append(this.timestamp.format(formatter)).append("\n");
         }
 
-        sb.append("\n"); // خط خالی قبل از بدنه
+        sb.append("\n");
         sb.append(this.getBody());
 
         return sb.toString();
