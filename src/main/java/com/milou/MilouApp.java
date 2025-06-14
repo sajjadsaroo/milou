@@ -116,50 +116,22 @@ public class MilouApp {
 
     }
 
-    private static void replyEmail(User sender) {
-        System.out.println("Code (or 'B' to go back to the main menu):");
+    private static void replyEmail(User user) {
+        System.out.println("Code of the email to reply to (or 'B' to go back):");
         String code = scanner.nextLine().trim();
-        if (code.equalsIgnoreCase("b")) {
-            showUserCommands(sender);
-            return;
-        }
+        if (code.equalsIgnoreCase("b")) { showUserCommands(user); return; }
 
-        Optional<Email> oldEmail = EmailService.readByCode(sender.getId(), code);
-        if (oldEmail.isEmpty()) {
-            System.out.println("Invalid email code. Please try again.");
-            replyEmail(sender);
-            return;
-        }
-
-        System.out.println("Body (or 'B' to go back to main menu):");
+        System.out.println("Body of your reply:");
         String body = scanner.nextLine();
-        if (body.equalsIgnoreCase("b")) {
-            showUserCommands(sender);
-            return;
-        }
-
-        Email email = new Email(sender, "[Re] " + oldEmail.get().getSubject(), body);
-        email.setTimestamp(LocalDateTime.now());
-
-        List<User> oldRecipients = new ArrayList<>(oldEmail.get().getRecipients());
-        oldRecipients.removeIf(u -> u.getId().equals(sender.getId()));
-        if (oldRecipients.stream()
-                .noneMatch(u -> u.getId().equals(oldEmail.get().getSender().getId()))) {
-            oldRecipients.add(oldEmail.get().getSender());
-        }
-
-        email.setRecipients(oldRecipients);
-        email.setMessage_code(CodeGenerator.generate());
 
         EmailService emailService = new EmailService();
         try {
-            emailService.sendEmail(email, oldEmail);
+            emailService.replyToEmail(user, code, body);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            replyEmail(sender);
+            System.out.println("Error replying to email: " + e.getMessage());
         }
 
-        showUserCommands(sender);
+        showUserCommands(user);
     }
 
 
@@ -253,45 +225,25 @@ public class MilouApp {
     }
 
     private static void sendEmail(User sender) {
-        System.out.println("Recipient(s) Separate with commas (,) (or 'B' to go back to the view mail menu): ");
-        String recipients = scanner.nextLine().trim();
+        System.out.println("Recipient(s) (Separate with commas, or 'B' to go back):");
+        String recipientsInput = scanner.nextLine().trim();
+        if (recipientsInput.equalsIgnoreCase("b")) { showUserCommands(sender); return; }
 
-        if (recipients.equalsIgnoreCase("b")) {
-            showUserCommands(sender);
-            return;
-        }
-
-        String[] emails = recipients.split(",");
-        if (emails.length == 0) {
-            System.out.println("Please enter valid email addresses.");
-            sendEmail(sender);
-        }
-
-        System.out.println("Subject: ");
+        System.out.println("Subject:");
         String subject = scanner.nextLine().trim();
-        if (subject.isEmpty())
-            subject = "no subject";
 
-        System.out.println("Body: ");
+        System.out.println("Body:");
         String body = scanner.nextLine().trim();
 
-        Email email = new Email(sender, subject, body);
-        email.setMessage_code(CodeGenerator.generate());
-
-        for (String email_address : emails) {
-            email.addRecipients(email_address.trim());
-        }
-
-        email.setTimestamp(LocalDateTime.now());
+        List<String> recipientEmails = Arrays.asList(recipientsInput.split(","));
 
         EmailService emailService = new EmailService();
         try {
-            emailService.sendEmail(email, Optional.empty());
+            emailService.sendEmail(sender, recipientEmails, subject, body);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("Error: " + e.getMessage());
         }
+
         showUserCommands(sender);
-
-
     }
 }
