@@ -4,246 +4,171 @@ import com.milou.models.Email;
 import com.milou.models.User;
 import com.milou.services.AuthService;
 import com.milou.services.EmailService;
-import com.milou.utils.CodeGenerator;
-
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
-import java.time.LocalDateTime;
 
 public class MilouApp {
 
     private static final Scanner scanner = new Scanner(System.in);
-    private static final AuthService auth = new AuthService();
+    private static final AuthService authService = new AuthService();
+    private static final EmailService emailService = new EmailService();
 
     public static void main(String[] args) {
-
         LogManager.getLogManager().reset();
         Logger.getLogger("org.hibernate").setLevel(Level.WARNING);
-        Logger.getLogger("com.mysql").setLevel(Level.WARNING);
-        Logger.getLogger("org.hibernate.SQL").setLevel(Level.WARNING);
-        Logger.getLogger("org.hibernate.type.descriptor.sql.BasicBinder").setLevel(Level.WARNING);
 
         while (true) {
-            System.out.println("[L]ogin, [S]ign up:");
+            System.out.println("\n--- Milou Email Service ---");
+            System.out.println("[L]ogin, [S]ign up, [E]xit:");
             String input = scanner.nextLine().trim().toLowerCase();
 
-            if (input.equals("l") || input.equals("login")) {
-                login();
-            } else if (input.equals("s") || input.equals("sign up") || input.equals("signup")) {
-                signUp();
-            } else {
-                System.out.println("Invalid input. Please enter 'L' for Login or 'S' for Sign up.");
+            switch (input) {
+                case "l", "login" -> login();
+                case "s", "signup" -> signUp();
+                case "e", "exit" -> {
+                    System.out.println("Goodbye!");
+                    return;
+                }
+                default -> System.out.println("Invalid input.");
             }
         }
     }
 
-
     private static void login() {
-        System.out.println("Please enter your email address (with or without \"@milou.com\"): ");
+        System.out.print("Email: ");
         String email = scanner.nextLine();
-        System.out.println("Please enter your password: ");
+        System.out.print("Password: ");
         String password = scanner.nextLine();
 
-        try {
-            User user = auth.login(email, password);
-            if (user == null) {
-                System.out.println("Invalid email or password. Please try again.");
-                main(null);
-            }
+        User user = authService.login(email, password);
+        if (user != null) {
+            System.out.println("\nWelcome back, " + user.getName() + "!");
             showUserCommands(user);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+        } else {
+            System.out.println("Invalid email or password. Please try again.");
         }
     }
 
     private static void signUp() {
-        System.out.print("Name: (or 'B' to go back to the view login menu): ");
+        System.out.print("Name: ");
         String name = scanner.nextLine().trim();
 
-        if (name.equalsIgnoreCase("b")) {
-            main(null);
-            return;
-        }
-
-
-        System.out.print("Email: (with or without \"@milou.com\") (or 'B' to go back to the view login menu): ");
+        System.out.print("Email (without @milou.com): ");
         String email = scanner.nextLine().trim();
 
-        if (email.equalsIgnoreCase("b")) {
-            main(null);
-            return;
-        }
-
-        System.out.print("Password: (or 'B' to go back to the view login menu): ");
+        System.out.print("Password (min 8 characters): ");
         String password = scanner.nextLine().trim();
 
-        if (password.equalsIgnoreCase("b")) {
-            main(null);
-            return;
-        }
-
-
         try {
-            auth.signUp(name, email, password);
+            authService.signUp(name, email, password);
+            System.out.println("Your new account is created. Go ahead and login!");
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            main(null);
+            System.out.println("Error: " + e.getMessage());
         }
-        System.out.println("Your new account is created.");
-        System.out.println("Go ahead and login!");
     }
 
     private static void showUserCommands(User user) {
-        System.out.println("[S]end, [V]iew, [R]eply, [F]orward, [Q]uit");
-        String command = scanner.nextLine().trim().toLowerCase();
+        while (true) {
+            System.out.println("\n--- Main Menu ---");
+            System.out.println("[S]end, [V]iew Emails, [R]eply, [F]orward, [L]ogout");
+            String command = scanner.nextLine().trim().toLowerCase();
 
-        switch (command) {
-            case "s":
-                sendEmail(user);
-                break;
-            case "v":
-                viewEmail(user);
-                break;
-            case "r":
-                replyEmail(user);
-                break;
-            case "q":
-                main(null);
-                break;
-        }
-
-    }
-
-    private static void replyEmail(User user) {
-        System.out.println("Code of the email to reply to (or 'B' to go back):");
-        String code = scanner.nextLine().trim();
-        if (code.equalsIgnoreCase("b")) { showUserCommands(user); return; }
-
-        System.out.println("Body of your reply:");
-        String body = scanner.nextLine();
-
-        EmailService emailService = new EmailService();
-        try {
-            emailService.replyToEmail(user, code, body);
-        } catch (Exception e) {
-            System.out.println("Error replying to email: " + e.getMessage());
-        }
-
-        showUserCommands(user);
-    }
-
-
-    private static void viewEmail(User user) {
-        System.out.println("[A]ll, [U]nread, [S]ent, [C]ode (or 'B' to go back to the main menu):");
-        String order = scanner.nextLine().trim().toLowerCase();
-
-        switch (order) {
-            case "a":
-                allMail(user);
-                break;
-            case "u":
-                unreadEmail(user);
-                break;
-            case "s":
-                sentEmail(user);
-                break;
-            case "c":
-                readByCode(user);
-                break;
-            case "b":
-                showUserCommands(user);
-                break;
-            default:
-                System.out.println("Invalid input.");
-                viewEmail(user);
+            switch (command) {
+                case "s" -> sendEmail(user);
+                case "v" -> viewEmailMenu(user);
+                case "r" -> replyEmail(user);
+                // case "f" -> forwardEmail(user); // برای پیاده‌سازی در آینده
+                case "l" -> {
+                    System.out.println("Logging out...");
+                    return;
+                }
+                default -> System.out.println("Invalid command.");
+            }
         }
     }
 
+    private static void viewEmailMenu(User user) {
+        while (true) {
+            System.out.println("\n--- View Emails Menu ---");
+            System.out.println("[A]ll, [U]nread, [S]ent, [C]ode, [B]ack to Main Menu");
+            String choice = scanner.nextLine().trim().toLowerCase();
+
+            switch (choice) {
+                case "a" -> showEmailList("All Emails:", emailService.allMails(user.getId()));
+                case "u" -> showEmailList("Unread Emails:", emailService.unreadMails(user.getId()));
+                case "s" -> showEmailList("Sent Emails:", emailService.sentMails(user.getId()));
+                case "c" -> readByCode(user);
+                case "b" -> {
+                    return;
+                }
+                default -> System.out.println("Invalid input.");
+            }
+        }
+    }
+
+    private static void showEmailList(String title, List<Email> emails) {
+        System.out.println("\n--- " + title + " ---");
+        if (emails.isEmpty()) {
+            System.out.println("No emails to show.");
+        } else {
+            for (Email email : emails) {
+                System.out.println("+ " + email.getSender().getEmail() + " - " + email.getSubject() + " (" + email.getMessage_code() + ")");
+            }
+        }
+    }
 
     private static void readByCode(User user) {
-        System.out.println("Code (or 'B' to go back to the view mail menu): ");
+        System.out.print("Enter Code: ");
         String code = scanner.nextLine().trim();
-        if (code.equalsIgnoreCase("b")) {
-            viewEmail(user);
-            return;
+        if (code.isEmpty()) return;
+
+        Optional<Email> emailOptional = emailService.readByCode(user.getId(), code);
+
+        if (emailOptional.isPresent()) {
+            System.out.println("\n--- Email Details ---");
+            System.out.println(emailOptional.get());
+        } else {
+            System.out.println("Email not found or you don't have permission.");
         }
-
-        Optional<Email> email = EmailService.readByCode(user.getId(), code);
-        if (email.isEmpty()) {
-            System.out.println("Email not found. Please try again.");
-            readByCode(user);
-            return;
-        }
-
-        System.out.println(email.get());
-        viewEmail(user);
-    }
-
-
-    private static void sentEmail(User user) {
-        List<Email> emails = EmailService.sentMails(user.getId());
-
-        if (emails.isEmpty()) {
-            System.out.println("No sent emails found.");
-            viewEmail(user);
-        }
-        System.out.println("Sent Emails:");
-        for (Email email : emails) {
-            System.out.println("+ " + email.getSender().getEmail() + " - " + email.getSubject() + " (" + email.getMessage_code() + ")");
-        }
-        viewEmail(user);
-    }
-
-    private static void allMail(User user) {
-
-        List<Email> emails = EmailService.allMails(user.getId());
-
-        if (emails.isEmpty()) {
-            System.out.println("No received emails found.");
-            viewEmail(user);
-        }
-        System.out.println("All Emails:");
-        for (Email email : emails) {
-            System.out.println("+ " + email.getSender().getEmail() + " - " + email.getSubject() + " (" + email.getMessage_code() + ")");
-        }
-        viewEmail(user);
-    }
-
-    private static void unreadEmail(User user) {
-        List<Email> emails = EmailService.unreadMails(user.getId());
-        if (emails.isEmpty()) {
-            System.out.println("No Unread emails found.");
-            viewEmail(user);
-        }
-        System.out.println("Unread Emails:");
-        for (Email email : emails) {
-            System.out.println("+ " + email.getSender().getEmail() + " - " + email.getSubject() + " (" + email.getMessage_code() + ")");
-        }
-        viewEmail(user);
     }
 
     private static void sendEmail(User sender) {
-        System.out.println("Recipient(s) (Separate with commas, or 'B' to go back):");
+        System.out.print("Recipient(s) (separate with comma): ");
         String recipientsInput = scanner.nextLine().trim();
-        if (recipientsInput.equalsIgnoreCase("b")) { showUserCommands(sender); return; }
+        if (recipientsInput.isEmpty()) return;
 
-        System.out.println("Subject:");
+        System.out.print("Subject: ");
         String subject = scanner.nextLine().trim();
 
-        System.out.println("Body:");
+        System.out.print("Body: ");
         String body = scanner.nextLine().trim();
 
-        List<String> recipientEmails = Arrays.asList(recipientsInput.split(","));
-
-        EmailService emailService = new EmailService();
+        List<String> recipientEmails = Arrays.asList(recipientsInput.split("\\s*,\\s*"));
         try {
             emailService.sendEmail(sender, recipientEmails, subject, body);
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }
+    }
 
-        showUserCommands(sender);
+    private static void replyEmail(User user) {
+        System.out.print("Code of the email to reply to: ");
+        String code = scanner.nextLine().trim();
+        if (code.isEmpty()) return;
+
+        System.out.print("Body of your reply: ");
+        String body = scanner.nextLine().trim();
+
+        try {
+            emailService.replyToEmail(user, code, body);
+            System.out.println("Reply sent successfully.");
+        } catch (Exception e) {
+            System.out.println("Error replying to email: " + e.getMessage());
+        }
     }
 }

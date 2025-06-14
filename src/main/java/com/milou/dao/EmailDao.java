@@ -96,7 +96,6 @@ public class EmailDao {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
 
-            // Load full email with all recipients and sender
             String hql = "SELECT DISTINCT e FROM Email e " +
                     "LEFT JOIN FETCH e.sender s " +
                     "LEFT JOIN FETCH e.recipients r " +
