@@ -96,14 +96,14 @@ public class EmailDao {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
 
+            // Load full email with all recipients and sender
             String hql = "SELECT DISTINCT e FROM Email e " +
                     "LEFT JOIN FETCH e.sender s " +
                     "LEFT JOIN FETCH e.recipients r " +
-                    "WHERE e.message_code = :mCode AND (s.id = :userId OR r.id = :userId)";
+                    "WHERE e.message_code = :mCode";
 
             Optional<Email> emailOptional = session.createQuery(hql, Email.class)
                     .setParameter("mCode", code)
-                    .setParameter("userId", userId)
                     .getResultStream()
                     .findFirst();
 
@@ -114,15 +114,26 @@ public class EmailDao {
 
             Email email = emailOptional.get();
 
-            String sql = "UPDATE email_recipient SET is_read = 1 WHERE user_id = :userId AND email_id = :emailId";
+            boolean isSender = email.getSender().getId().equals(userId);
+            boolean isRecipient = email.getRecipients().stream()
+                    .anyMatch(u -> u.getId().equals(userId));
 
-            session.createNativeQuery(sql, Void.class)
-                    .setParameter("userId", userId)
-                    .setParameter("emailId", email.getId())
-                    .executeUpdate();
+            if (!isSender && !isRecipient) {
+                transaction.rollback();
+                return Optional.empty();
+            }
+
+            // فقط برای دریافت‌کننده ها وضعیت خوانده شدن را آپدیت کن
+            if (isRecipient) {
+                String sql = "UPDATE email_recipient SET is_read = 1 WHERE user_id = :userId AND email_id = :emailId";
+
+                session.createNativeQuery(sql)
+                        .setParameter("userId", userId)
+                        .setParameter("emailId", email.getId())
+                        .executeUpdate();
+            }
 
             transaction.commit();
-
             return Optional.of(email);
 
         } catch (Exception e) {

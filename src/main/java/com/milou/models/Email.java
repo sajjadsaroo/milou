@@ -30,6 +30,8 @@ public class Email {
     )
     private List<User> recipients = new ArrayList<>();
 
+
+
     private String subject;
 
 

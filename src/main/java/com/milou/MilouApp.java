@@ -89,8 +89,47 @@ public class MilouApp {
             case "v":
                 viewEmail(user);
                 break;
+            case "r":
+                replyEmail(user);
+                break;
         }
 
+    }
+
+    private static void replyEmail(User sender) {
+        System.out.println("Code:");
+        String code = scanner.nextLine().trim();
+        Optional<Email> oldEmail = EmailService.readByCode(sender.getId(), code);
+        if (oldEmail.isEmpty()) {
+            System.out.println("Invalid email code. Please try again.");
+            replyEmail(sender);
+            return;
+        }
+
+        System.out.println("Body:");
+        String body = scanner.nextLine();
+
+        Email email = new Email(sender, "[Re] " + oldEmail.get().getSubject(), body);
+        email.setTimestamp(LocalDateTime.now());
+
+        List<User> oldRecipients = oldEmail.get().getRecipients();
+        oldRecipients.removeIf(u -> u.getId().equals(sender.getId()));
+        if (oldRecipients.stream()
+                .noneMatch(u -> u.getId().equals(oldEmail.get().getSender().getId()))) {
+            oldRecipients.add(oldEmail.get().getSender());
+        }
+
+        email.setRecipients(oldRecipients);
+        email.setMessage_code(CodeGenerator.generate());
+
+        EmailService emailService = new EmailService();
+        try {
+            emailService.sendEmail(email, oldEmail);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            replyEmail(sender);
+        }
+        showUserCommands(sender);
     }
 
     private static void viewEmail(User user) {
@@ -120,7 +159,9 @@ public class MilouApp {
         if (email.isEmpty()) {
             System.out.println("Email not found. Please try again.");
             viewEmail(user);
+            return;
         }
+
         System.out.println(email.get());
         viewEmail(user);
     }
@@ -195,10 +236,11 @@ public class MilouApp {
 
         EmailService emailService = new EmailService();
         try {
-            emailService.sendEmail(email);
+            emailService.sendEmail(email, Optional.empty());
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+        showUserCommands(sender);
 
 
     }
