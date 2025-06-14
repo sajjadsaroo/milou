@@ -90,26 +90,73 @@ public class EmailDao {
         }
     }
 
-    public Optional<Email> findEmailByCodeForUser(Long userId , String code) {
+    public Optional<Email> findEmailByCodeForUser(Long userId, String code) {
+        Transaction transaction = null;
+
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
 
             String hql = "SELECT DISTINCT e FROM Email e " +
                     "LEFT JOIN FETCH e.sender s " +
                     "LEFT JOIN FETCH e.recipients r " +
                     "WHERE e.message_code = :mCode AND (s.id = :userId OR r.id = :userId)";
 
-            return session.createQuery(hql, Email.class)
+            Optional<Email> emailOptional = session.createQuery(hql, Email.class)
                     .setParameter("mCode", code)
                     .setParameter("userId", userId)
                     .getResultStream()
                     .findFirst();
 
+            if (emailOptional.isEmpty()) {
+                transaction.rollback();
+                return Optional.empty();
+            }
+
+            Email email = emailOptional.get();
+
+            String sql = "UPDATE email_recipient SET is_read = 1 WHERE user_id = :userId AND email_id = :emailId";
+
+            session.createNativeQuery(sql, Void.class)
+                    .setParameter("userId", userId)
+                    .setParameter("emailId", email.getId())
+                    .executeUpdate();
+
+            transaction.commit();
+
+            return Optional.of(email);
+
         } catch (Exception e) {
-            System.err.println("Error finding email with code " + code + " for user ID " + userId);
+            if (transaction != null) {
+                transaction.rollback();
+            }
+
+            System.err.println("Error finding/updating email with code " + code + " for user ID " + userId);
             e.printStackTrace();
             return Optional.empty();
         }
     }
+
+//    public Optional<Email> findEmailByCodeForUser(Long userId , String code) {
+//        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+//
+//
+//            String hql = "SELECT DISTINCT e FROM Email e " +
+//                    "LEFT JOIN FETCH e.sender s " +
+//                    "LEFT JOIN FETCH e.recipients r " +
+//                    "WHERE e.message_code = :mCode AND (s.id = :userId OR r.id = :userId)";
+//
+//            return session.createQuery(hql, Email.class)
+//                    .setParameter("mCode", code)
+//                    .setParameter("userId", userId)
+//                    .getResultStream()
+//                    .findFirst();
+//
+//        } catch (Exception e) {
+//            System.err.println("Error finding email with code " + code + " for user ID " + userId);
+//            e.printStackTrace();
+//            return Optional.empty();
+//        }
+//    }
 
     public List<Email> findSentEmails(Long userId) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {

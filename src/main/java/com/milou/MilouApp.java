@@ -122,6 +122,7 @@ public class MilouApp {
             viewEmail(user);
         }
         System.out.println(email.get());
+        viewEmail(user);
     }
 
     private static void sentEmail(User user) {
