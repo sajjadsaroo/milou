@@ -29,9 +29,9 @@ public class EmailDao {
             session.persist(email);
             transaction.commit();
         } catch (Exception e) {
-//            if (transaction != null && transaction.isActive()) {
-//                transaction.rollback();
-//            }
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
             e.printStackTrace();
         }
     }
@@ -123,7 +123,6 @@ public class EmailDao {
                 return Optional.empty();
             }
 
-            // فقط برای دریافت‌کننده ها وضعیت خوانده شدن را آپدیت کن
             if (isRecipient) {
                 String sql = "UPDATE email_recipient SET is_read = 1 WHERE user_id = :userId AND email_id = :emailId";
 
@@ -146,28 +145,6 @@ public class EmailDao {
             return Optional.empty();
         }
     }
-
-//    public Optional<Email> findEmailByCodeForUser(Long userId , String code) {
-//        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-//
-//
-//            String hql = "SELECT DISTINCT e FROM Email e " +
-//                    "LEFT JOIN FETCH e.sender s " +
-//                    "LEFT JOIN FETCH e.recipients r " +
-//                    "WHERE e.message_code = :mCode AND (s.id = :userId OR r.id = :userId)";
-//
-//            return session.createQuery(hql, Email.class)
-//                    .setParameter("mCode", code)
-//                    .setParameter("userId", userId)
-//                    .getResultStream()
-//                    .findFirst();
-//
-//        } catch (Exception e) {
-//            System.err.println("Error finding email with code " + code + " for user ID " + userId);
-//            e.printStackTrace();
-//            return Optional.empty();
-//        }
-//    }
 
     public List<Email> findSentEmails(Long userId) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
