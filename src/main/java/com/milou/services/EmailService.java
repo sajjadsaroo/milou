@@ -102,22 +102,22 @@ public class EmailService {
     }
 
 
-    public static List<Email> allMails(Long userId) {
+    public List<Email> allMails(Long userId) {
         EmailDao emailDao = new EmailDao();
         return emailDao.findReceivedEmailsByUserId(userId);
     }
 
-    public static Optional<Email> readByCode(Long userId, String code) {
+    public Optional<Email> readByCode(Long userId, String code) {
         EmailDao emailDao = new EmailDao();
         return emailDao.findEmailByCodeForUser(userId, code);
     }
 
-    public static List<Email> unreadMails(Long userId) {
+    public List<Email> unreadMails(Long userId) {
         EmailDao emailDao = new EmailDao();
         return emailDao.findUnreadEmailsByUserIdNative(userId);
     }
 
-    public static List<Email> sentMails(Long userId) {
+    public List<Email> sentMails(Long userId) {
         EmailDao emailDao = new EmailDao();
         return emailDao.findSentEmails(userId);
     }

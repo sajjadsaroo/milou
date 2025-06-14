@@ -7,7 +7,7 @@ public class CodeGenerator {
 
     public static String generate() {
         count++;
-        return "msg-"+ emailDao.findMaxId() + count + (int)(Math.random()*10);
+        return "msg"+ emailDao.findMaxId() + count + (int)(Math.random()*10);
     }
 
 }
