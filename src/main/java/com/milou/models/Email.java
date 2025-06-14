@@ -5,8 +5,10 @@ import com.milou.services.AuthService;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "emails")
@@ -124,11 +126,30 @@ public class Email {
 
     @Override
     public String toString() {
-        String s = "Code: " + getMessage_code() + "\nRecipient(s): ";
-        for (User user : getRecipients()) {
-            s = s.concat(user.getEmail() + " ");
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("Code: ").append(this.getMessage_code()).append("\n");
+
+        sb.append("Recipient(s): ");
+        if (this.recipients != null && !this.recipients.isEmpty()) {
+            String recipientsString = this.recipients.stream()
+                    .map(User::getEmail)
+                    .collect(Collectors.joining(", "));
+            sb.append(recipientsString);
         }
-        s = s.concat("\nSubject: " + getSubject() + "\nDate: " + getTimestamp() + "\n\n" + getBody() + "\n");
-        return s;
+        sb.append("\n");
+
+        sb.append("Subject: ").append(this.getSubject()).append("\n");
+
+        // فرمت کردن تاریخ
+        if (this.timestamp != null) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            sb.append("Date: ").append(this.timestamp.format(formatter)).append("\n");
+        }
+
+        sb.append("\n"); // خط خالی قبل از بدنه
+        sb.append(this.getBody());
+
+        return sb.toString();
     }
 }
