@@ -1,12 +1,14 @@
 package com.milou.services;
 import com.milou.dao.*;
 import com.milou.models.*;
+import com.milou.utils.*;
+
 
 public class AuthService {
     private final UserDao userDao = new UserDao();
 
     public void signUp(String name, String email, String password) throws Exception {
-        String normalizedEmail = normalizeEmail(email); // متد کمکی برای افزودن @milou.com
+        String normalizedEmail = normalizeEmail(email);
         if(password.length() < 8) {
             throw new Exception("password too short (must be at least 8 characters)");
         }
@@ -14,7 +16,7 @@ public class AuthService {
             throw new Exception("this email already exists");
         }
 
-        User newUser = new User(name, normalizedEmail, password);
+        User newUser = new User(name, normalizedEmail, HashUtil.generateSHA1Hash(password));
         userDao.save(newUser);
     }
 
@@ -24,7 +26,7 @@ public class AuthService {
             return null;
         }
         User user = userDao.findByEmail(normalizedEmail);
-        if(!user.getPassword().equals(password)){
+        if(!HashUtil.verifySHA1Hash(password , user.getPassword())){
             return null;
         }
         return user;
