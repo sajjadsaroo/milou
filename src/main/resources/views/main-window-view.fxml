@@ -8,7 +8,7 @@
         <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
             <items>
                 <Button fx:id="newEmailButton" mnemonicParsing="false" onAction="#newEmailButtonAction" text="New Email" />
-                <Button fx:id="replyButton" mnemonicParsing="false" text="Reply" />
+                <Button fx:id="replyButton" mnemonicParsing="false" onAction="#replyButtonAction" text="Reply" />
                 <Button fx:id="forwardButton" mnemonicParsing="false" text="Forward" />
             </items>
         </ToolBar>
