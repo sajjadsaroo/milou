@@ -2,11 +2,14 @@ package com.milou.gui.controllers;
 
 import com.milou.models.User;
 import com.milou.services.AuthService;
+import com.milou.utils.SceneManager;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
+
 
 public class LoginController {
 
@@ -22,7 +25,7 @@ public class LoginController {
     private final AuthService authService = new AuthService();
 
     @FXML
-    protected void loginButtonAction() {
+    protected void loginButtonAction(ActionEvent event) {
         String email = emailField.getText();
         String password = passwordField.getText();
 
@@ -34,14 +37,10 @@ public class LoginController {
         User user = authService.login(email, password);
 
         if (user != null) {
-            statusLabel.setTextFill(Color.GREEN);
-            statusLabel.setText("Login Successful! Welcome " + user.getName());
-            // TODO: در قدم بعدی، اینجا کد باز کردن پنجره اصلی برنامه را اضافه می‌کنیم
-            System.out.println("Login successful for: " + user.getEmail());
+            SceneManager.openMainWindow(event, user);
         } else {
             statusLabel.setTextFill(Color.RED);
             statusLabel.setText("Invalid email or password.");
-            System.out.println("Login failed.");
         }
     }
 }
