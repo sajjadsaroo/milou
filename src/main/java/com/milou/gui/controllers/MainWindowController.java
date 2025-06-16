@@ -1,20 +1,27 @@
 package com.milou.gui.controllers;
 
+import com.milou.MilouGUI;
 import com.milou.models.Email;
 import com.milou.models.User;
 import com.milou.services.EmailService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.util.List;
 
 public class MainWindowController {
+
+    @FXML
+    private Button newEmailButton;
 
     @FXML
     private ListView<String> folderListView;
@@ -42,21 +49,53 @@ public class MainWindowController {
                 (observable, oldValue, newValue) -> showEmailDetails(newValue)
         );
 
-        folderListView.getItems().addAll("Inbox", "Unread", "Sent");
-        folderListView.getSelectionModel().select("Inbox");
+
+        folderListView.getSelectionModel().selectedItemProperty().addListener(
+                (observable, oldValue, newValue) -> onFolderSelectionChanged(newValue)
+        );
+
     }
 
     public void initData(User user) {
         this.currentUser = user;
-        loadEmails();
+        loadInitialFolders();
     }
 
-    private void loadEmails() {
-        if (currentUser != null) {
-            List<Email> emails = emailService.allMails(currentUser.getId());
-            ObservableList<Email> observableEmails = FXCollections.observableArrayList(emails);
-            emailTableView.setItems(observableEmails);
+    /**
+     * پوشه‌های اولیه را در منو قرار داده و Inbox را به عنوان پیش‌فرض انتخاب می‌کند.
+     */
+    private void loadInitialFolders() {
+        folderListView.getItems().addAll("Inbox", "Unread", "Sent");
+        folderListView.getSelectionModel().select("Inbox");
+    }
+
+    private void onFolderSelectionChanged(String selectedFolder) {
+        if (selectedFolder == null || currentUser == null) {
+            return;
         }
+
+        List<Email> emailsToShow;
+        switch (selectedFolder) {
+            case "Inbox":
+                emailsToShow = emailService.allMails(currentUser.getId());
+                break;
+            case "Unread":
+                emailsToShow = emailService.unreadMails(currentUser.getId());
+                break;
+            case "Sent":
+                emailsToShow = emailService.sentMails(currentUser.getId());
+                break;
+            default:
+                emailsToShow = List.of();
+        }
+
+        updateEmailTable(emailsToShow);
+    }
+
+    private void updateEmailTable(List<Email> emails) {
+        ObservableList<Email> observableEmails = FXCollections.observableArrayList(emails);
+        emailTableView.setItems(observableEmails);
+        emailBodyArea.clear();
     }
 
     private void showEmailDetails(Email email) {
@@ -67,4 +106,28 @@ public class MainWindowController {
             emailBodyArea.clear();
         }
     }
+
+
+    @FXML
+    void newEmailButtonAction(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(MilouGUI.class.getResource("/views/compose-view.fxml"));
+
+            Stage composeStage = new Stage();
+            composeStage.setTitle("Compose New Email");
+            composeStage.setScene(new Scene(loader.load()));
+
+            ComposeController controller = loader.getController();
+            controller.initData(this.currentUser);
+
+            composeStage.initModality(Modality.APPLICATION_MODAL);
+            composeStage.showAndWait();
+
+            // TODO: بعد از بسته شدن پنجره، لیست ایمیل‌های ارسالی را رفرش کن
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
