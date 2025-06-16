@@ -11,7 +11,7 @@ public class MilouGUI extends Application {
 
     @Override
     public void start(Stage primaryStage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(MilouGUI.class.getResource("/com/milou/gui/views/login-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(MilouGUI.class.getResource("/views/login-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
         primaryStage.setTitle("Milou Email Client - Login");
