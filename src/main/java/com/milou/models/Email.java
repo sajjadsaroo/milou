@@ -108,6 +108,16 @@ public class Email {
         this.timestamp = timestamp;
     }
 
+    public String getFrom() {
+        return this.sender != null ? this.sender.getEmail() : "[unknown]";
+    }
+
+    public String getFormattedTimestamp() {
+        if (this.timestamp == null) return "";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        return this.timestamp.format(formatter);
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

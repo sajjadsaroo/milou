@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/17.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.milou.gui.controllers.MainWindowController">
+    <top>
+        <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+            <items>
+                <Button fx:id="newEmailButton" mnemonicParsing="false" onAction="#newEmailButtonAction" text="New Email" />
+                <Button fx:id="replyButton" mnemonicParsing="false" onAction="#replyButtonAction" text="Reply" />
+                <Button fx:id="forwardButton" mnemonicParsing="false" text="Forward" />
+            </items>
+        </ToolBar>
+    </top>
+    <left>
+        <ListView fx:id="folderListView" prefWidth="150.0" BorderPane.alignment="CENTER" />
+    </left>
+    <center>
+        <VBox spacing="10.0" BorderPane.alignment="CENTER">
+            <TableView fx:id="emailTableView" prefHeight="250.0" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="fromColumn" prefWidth="200.0" text="From" />
+                    <TableColumn fx:id="subjectColumn" prefWidth="300.0" text="Subject" />
+                    <TableColumn fx:id="dateColumn" prefWidth="150.0" text="Date" />
+                </columns>
+            </TableView>
+            <TextArea fx:id="emailBodyArea" editable="false" prefHeight="300.0" wrapText="true" VBox.vgrow="ALWAYS" />
+        </VBox>
+    </center>
+</BorderPane>
